@@ -413,7 +413,7 @@ return "Am plecat spre \(place)"
 }
 
 //cand am apelat functia de mai sus ne-am complicat, am putea folosi shorthand parameter names ca sa simplificam situatia.
-//Closer-ul nostru travel stie deja ca asteptam ca param un String, returnam un String
+//Closure-ul nostru travel stie deja ca asteptam ca param un String, returnam un String
 travel{
     "Am plecat spre \($0)"
 }
@@ -440,3 +440,370 @@ func travel() -> (String) -> Void{
 }
 let result = travel()
 result("Oradea")
+
+//Capturing values closures:
+//Se intampla cand creeam valori in functie, acestea pot fi folosit si in closure
+func travel2() -> (String) -> Void {
+    var counter = 1
+
+    return {
+        print("\(counter). I'm going to \($0)")
+        counter += 1
+    }
+}
+
+result("Sibiu")
+result("Sibiu")
+result("Sibiu") //va creste counter-ul de mai sus de fiecare data
+
+//Structuri:
+
+struct Sport{
+    //normal properties
+    var name:String
+    var matchdate:String
+    var numberofleagues:Int
+    //computed property (ia diferite valori in functie de alti factori):
+    var esteSportOlympic:String {
+        if(numberofleagues>5)
+        {
+            return "\(name) este un sport olimpic"
+        }
+        else
+        {
+            return "\(name) nu este un sport olimpic"
+        }
+            
+    }
+}
+
+var tennis=Sport(name: "Tennis",matchdate:"21/01/2005",numberofleagues: 5)
+tennis.name="Tenis de camp"
+print(tennis.esteSportOlympic)
+
+var fotbal=Sport(name: "Fotbal",matchdate:"22/01/2006",numberofleagues: 6)
+print(fotbal.esteSportOlympic)
+
+//Property observers. Observa o aplicatie si ruleaza un anumit cod stabilit de programator in momentul in care se observa o schimbare la variabila
+struct Progress {
+    var task: String
+    var amount: Int {
+        didSet {
+            print("\(task) is now \(amount)% complete")
+        }
+    }
+}
+//folosim keywordul didSet si stabilim codul de rulat cand se schimba var.
+//mai exista si willSet care ruleaza codul inainte de schimbarea var, insa acesta e folosit rar.
+
+
+//Metode
+struct City{
+    var name:String
+    var population:Int
+    func collectTaxes() -> Int
+    {
+        var taxmoney=population*1000
+        return taxmoney
+    }
+    /*func schimbaOras()->Void
+    {
+        name="Oradea"
+    }*/ //Da eroare
+}
+
+var Oras=City(name: "Sibiu", population: 30000)
+print("\(Oras.collectTaxes())$ atatia bani au fost colectati de la populatie")
+//Instantele vor fi constante la initializare => nu putem sa le schimbam, vezi mai sus problema
+//Un work around la aceasta problema este keyword-ul mutating, folosit cu functii pentru a schimba o var:
+struct Person {
+    var name: String
+
+    mutating func makeAnonymous() {
+        name = "Anonymous"
+    }
+}
+var person = Person(name: "Ed")
+person.makeAnonymous()
+
+//string-urile sunt structuri in swift ceea ce inseamna ca au diferite metode:
+let stringtest="John Cena te saluta"
+print("Informatii string:")
+print(stringtest.isEmpty)
+print(stringtest.count)
+print(stringtest.contains("Cena"))
+print(stringtest.lowercased())
+//si arrays-urile sunt structuri si au mai multe metode, check em out cu "." si xcode autocomplete
+//Initializers (Constructors)
+
+    struct User{
+        var username:String
+        //Constructor fara param
+        init()
+        {
+            username="Unknown"
+            print("S-a creat un nou user")
+        }
+        //Constructor cu param
+        init(username:String)
+        {
+            print("\(username), s-a inregistrat cu succes!")
+            self.username=username
+        }
+        
+    }
+
+//Lazy properties (performance optimization)
+//Exemplu: folosim o alta structura in alta structura
+
+struct Group{
+    init()
+    {
+        print("S-a creat grupul")
+    }
+}
+
+struct UserAdvanced{
+    var username:String
+    lazy var group=Group() //Deci se creeaza pentru fiecare obiect aceasta instantiere a lui Group => performanta scazuta. putem repara asta cu keywordul lazy care va initializa doar cand obiectul va apela proprietatea
+    //Constructor fara param
+    init()
+    {
+        username="Unknown"
+        print("S-a creat un nou user")
+    }
+    //Constructor cu param
+    init(username:String)
+    {
+        print("\(username), s-a inregistrat cu succes!")
+        self.username=username
+    }
+    
+    
+    
+}
+
+var CrX=UserAdvanced(username: "CrX")
+CrX.group
+
+//Static: Folosit pentru a da share la proprietati si metode peste mai multe instante ale structurii
+struct Student{
+    //Swift 6 error: Static property 'studentiInClasa' is not concurrency-safe because it is nonisolated global shared mutable state
+    nonisolated(unsafe) static var studentiClasa=0
+    var name: String
+    
+    init(name: String) {
+        self.name = name
+        Student.studentiClasa = Student.studentiClasa + 1
+    }
+}
+
+//Access control ca si in alte limbaje, private, public pe langa acestea mai dispunem de fileprivate,internal (default access control for everything), open similar cu public dar clasele si metodele pot fi subclasate si overridded din defining module
+
+struct Person2{
+    private var id:String
+    init(id:String)
+    {
+        self.id=id
+    }
+    //id este accesibil doar struct=>
+    func getId()->String
+    {
+        return id
+    }
+    mutating func setId(newid:String)->Void
+    {
+        id=newid
+    }
+    func afisId()->Void
+    {
+        print(id)
+    }
+}
+
+var RandomGuy=Person2(id:"1")
+RandomGuy.afisId()
+RandomGuy.setId(newid: "523362368588883")
+RandomGuy.afisId()
+var idofguy=RandomGuy.getId()
+
+//Clase
+//Same ca in celelalte limbaje, mostenirea e de tipul
+//class Animal:Dog
+//Constructori cu init ca si la struct, doar ca pentru clase mostenite folosim super.init, pentru ca nu mai avem declaratie ci apel direct din clasa parinte
+class Animal{
+    var name:String
+    var age:Int
+    var sound:String
+    
+    init(name:String,age:Int,sound:String = "Generic Animal Sound")
+    {
+        self.name=name
+        self.age=age
+        self.sound=sound
+    }
+    
+    func makeSound()
+    {
+        print(sound)
+    }
+}
+
+class Dog:Animal{
+    var breed:String
+    init(name:String,age:Int,sound:String,breed:String){
+       self.breed=breed
+       super.init(name: name, age: age, sound: "Bark!")
+    }
+    override func makeSound() {
+        print(sound)
+        print("Not only i overridded the makeSound func but i also barked twin")
+    }
+}
+
+//cand vrem sa oprim mostenirea unei clase folosim keyword-ul final:
+
+final class CrazyDog:Dog
+{
+    var ability:String
+    init(name:String,age:Int,sound:String,breed:String,ability:String)
+    {
+        self.ability=ability
+        super.init(name:name,age:age,sound:sound,breed:breed)
+    }
+    
+    deinit{
+        print("Obiectul a fost distrus")
+    }
+}
+//Copying objects. Cand copiem un struct originalul si copia sunt diferite insa la clase ele pointeaza spre acelasi lucru
+var Chupacabra=Animal(name: "Chupi", age: 1000)
+print(Chupacabra.name)
+var ChupacabraCopy=Chupacabra
+ChupacabraCopy.name="Chupi Copy"
+print(ChupacabraCopy.name)
+
+//daca faceam cu struct am fi vazut chupi de doua ori.
+
+//Destructori: Deinitializers, folositi cu keywordul deinit() vezi mai sus
+//!!!!Clasele n-au nevoie de mutating, deoarece daca clasa e constanta si proprietatile sunt variabile acestea pot fi schimbate, daca vrem constante atunci e mai bine sa le declaram direct cu let
+
+//Protocols - folosite pentru a descrie ceea ce trebuie sa aiba proprietatile si metodele apoi transmitem limbajului ce tipuri trebuie sa respecte aceste protocoale
+
+protocol Identifiable {
+    var id:String { get set }
+
+}
+
+struct UserProtocol:Identifiable{
+    var id:String
+    
+    func displayId(thing: Identifiable)
+    {
+        print("Id-ul este: \(id)")
+    }
+}
+
+var user3=UserProtocol(id: "5325235")
+user3.displayId(thing:user3)
+
+//Mostenire protocoale
+
+protocol MustPass{
+    func checkifPassed()->Bool
+}
+
+protocol HasSchoolVacation{
+    func checkifVacation()-> Bool
+}
+
+protocol eligibileforBursa{
+    func eligibleBursa(note: Array<Double>,checkIntegralist: Bool) -> Bool
+}
+
+class StudentAdvanced:MustPass,HasSchoolVacation,eligibileforBursa{
+    var name:String
+    var age:Int
+    var note:Array<Int>
+    
+    init(name: String, age: Int, note: Array<Int>) {
+        self.name = name
+        self.age = age
+        self.note = note
+    }
+    
+    func checkifPassed() -> Bool {
+        return true
+    }
+    
+    func checkifVacation()->Bool
+    {
+        return true
+    }
+    
+    func eligibleBursa(note: Array<Double>, checkIntegralist: Bool) -> Bool {
+        return true
+    }
+}
+
+//Extensions: folosite pentru a adauga metode la tipuri deja existente pentru a le face sa faca ceva ce n-ar fi putut in mod normal sa faca, basically tipuri custom
+
+extension Int{
+    func squared()-> Int {
+        return self*self
+    }
+}
+
+var x=5
+//ne apelam functia custom pentru int:
+print(x.squared())
+
+//nu avem voie sa creeam variabile noi in extensii
+extension Int {
+    var isEven: Bool {
+        return self % 2 == 0
+    }
+}
+//dar le putem folosi ca si computed properties ca in exemplul de mai sus
+
+
+//Protocol extensions - aparute din cauza inabilitati de a folosii protocols la mai multe tipuri de odata.
+
+//refolosim array-urile si seturile de mai sus din program:
+
+extension Collection{
+    func summarize()
+    {
+        print("There are \(count) elements")
+        
+        for name in self
+        {
+            print(name,terminator: " ") //putem specifica cum sa separam elem terminator
+        }
+    }
+}
+
+array.summarize()
+celebritati.summarize()
+
+protocol IdentifiableAdvanced
+{
+    var id:String{get set}
+    func identify()
+}
+
+extension IdentifiableAdvanced{
+    func identify()
+    {
+        print("My id: \(id)")
+    }
+}
+
+struct TestProtExt:IdentifiableAdvanced{
+    var id:String
+    
+}
+
+let Test=TestProtExt(id:"1232333")
+print("") // din cauza ca terminatorul din ultimul print l-am schimbat in -> " " 
+Test.identify()

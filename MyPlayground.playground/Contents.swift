@@ -746,7 +746,7 @@ class StudentAdvanced:MustPass,HasSchoolVacation,eligibileforBursa{
     }
 }
 
-//Extensions: folosite pentru a adauga metode la tipuri deja existente pentru a le face sa faca ceva ce n-ar fi putut in mod normal sa faca, basically tipuri custom
+//Extensions: folosite pentru a adauga metode la tipuri deja existente pentru a le face sa faca ceva ce n-ar fi putut in mod normal sa faca, basically metode custom ptr tipuri
 
 extension Int{
     func squared()-> Int {
@@ -767,7 +767,7 @@ extension Int {
 //dar le putem folosi ca si computed properties ca in exemplul de mai sus
 
 
-//Protocol extensions - aparute din cauza inabilitati de a folosii protocols la mai multe tipuri de odata.
+//Protocol extensions - aparute din cauza inabilitati de a folosii protocols la mai multe tipuri de data.
 
 //refolosim array-urile si seturile de mai sus din program:
 
@@ -807,3 +807,120 @@ struct TestProtExt:IdentifiableAdvanced{
 let Test=TestProtExt(id:"1232333")
 print("") // din cauza ca terminatorul din ultimul print l-am schimbat in -> " " 
 Test.identify()
+
+//Optionals:
+//Syntax:
+var varsta:Int? = nil
+//momentan nu stocam nimic in varsta
+
+//Cand vrem sa lucram cu un string optional de exemplu vom fi opriti de swift ca safety feature, un mod de-a trece de acest wall e unwrapping:
+var nume:String? = nil
+//practic vom pune string-ul existent din nume daca exista unul in unwrapped
+if let unwrapped = nume {
+    print("\(unwrapped.count) am atatea litere in nume")
+}
+else
+{
+    print("Missing name")
+}
+
+//Alternativa la unwrapping ar fi unwrapping cu guard
+//Folosim keyword guard dar daca detecteaza un nil se asteapta sa iesim din functie,loop sau conditia in care l-am folosit
+
+func greet(_ name: String?) {
+    guard let unwrapped = name else {
+        print("You didn't provide a name!")
+        return
+    }
+
+    print("Hello, \(unwrapped)!")
+}
+
+//Force unwrapping cand suntem siguri ca avem o anumita valoare intr-o var optionala o putem converti dintr-un tip optional in tip non-optional:
+
+let str=5
+let num=Int(exactly: str)! //pentru ca swift nu stie daca str e 100% un int converteste num in optional, insa noi putem vedea in cod ca e safe atunci adaugam un "!"
+
+//Implicitly unwrapped optionals:
+let age:Int! = nil
+//putem folosi fara if let sau guard let, dar daca valoarea e 100% nil vom primi un crash
+
+//Nil coalescing:
+//face unwrapping la optional si returneaza o valoare din "el"
+func username(for id: Int) -> String? {
+    if id == 1 {
+        return "Taylor Swift"
+    } else {
+        return nil
+    }
+}
+
+print(username(for: 1))
+print(username(for: 0))
+
+//Observam ca este printat nil pentru for: 0 dar putem declara o valoare default in urmatorul fel:
+let user = username(for: 15) ?? "Anonymous"
+
+//Optional chaining:
+let vector=["Ionut", "John","Marcel","Alex"]
+let arandomguy=vector.first?.uppercased()
+//daca primim nil pe vector.first atunci numele nu va fi uppercased iar 'arandomguy' va fi setata pe nil
+
+
+//Try optional:
+//Schimba functiile din throw in optionale care vor returna nil ca si rezultat sau valoarea wrapped ca si optional
+
+if let result = try? checkPassword("password") {
+    print("Result was \(result)")
+} else {
+    print("D'oh.")
+}
+
+try! checkPassword("parola") //stim sigur ca parola!=password
+print("Ok")
+
+/*try! checkPassword("password")
+print("Oh no")  */ //da crash
+
+//Failable initializer, deoarece am vazut ca putem folosi force unwrapping pentru variabile optionale acestea pot fi folosite si pentru initializers (constructori) prin urm sintaxa:
+//init?()
+//{
+//
+//}
+
+struct FailablePerson {
+    var id: String
+
+    init?(id: String) {
+        if id.count == 9 {
+            self.id = id
+        } else {
+            return nil
+        }
+    }
+}
+
+var testOpt=FailablePerson(id:"123456789")
+print(testOpt)
+var testOpt2=FailablePerson(id:"2")
+print(testOpt2)
+
+//Typecasting:
+//Keyword-ul "as?" este folosit atunci cand avem un array de obiecte de diferite type-uri, si trebuie sa verificam care face parte dintr-un anumit type:
+//folosim clasele urm:
+
+class Human{}
+class Professor:Human{}
+class Student2:Human{func makeHomework(){print("Gata Tema")}}
+
+let people=[Human(),Professor(),Human(),Student2(),Professor()]
+
+for person in people {
+    if let student=person as? Student2{
+        student.makeHomework()
+    }
+}
+
+//typecast-ul a reusit se printeaza Gata tema
+
+
